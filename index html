@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Jiim Coin P2P Trading</title>
+  <script src="https://cdn.jsdelivr.net/npm/@solana/web3.js@1.73.2/lib/index.iife.min.js"></script>
+  <style>
+    body {
+      background: #f9f9f9;
+      font-family: Arial;
+      padding: 2rem;
+      max-width: 600px;
+      margin: auto;
+    }
+    h1 { color: #b8860b; }
+    .card {
+      background: white;
+      padding: 1rem;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      margin-bottom: 2rem;
+    }
+    input, button {
+      padding: 10px;
+      margin: 5px 0;
+      width: 100%;
+    }
+    .btn { background-color: #b8860b; color: white; border: none; cursor: pointer; }
+    .btn:hover { background-color: #d4af37; }
+  </style>
+</head>
+<body>
+  <h1>Jiim Coin P2P Exchange</h1>
+
+  <div class="card">
+    <button class="btn" onclick="connectWallet()">Connect Wallet</button>
+    <p><strong>Wallet Address:</strong> <span id="walletAddress">Not connected</span></p>
+    <p><strong>Jiim Balance:</strong> <span id="balance">0</span> JIIM</p>
+  </div>
+
+  <div class="card">
+    <h3>Sell Jiim</h3>
+    <input type="number" id="sellAmount" placeholder="Amount to sell (JIIM)">
+    <input type="text" id="sellPrice" placeholder="Price (in SOL)">
+    <button class="btn" onclick="placeOrder('sell')">Place Sell Order</button>
+  </div>
+
+  <div class="card">
+    <h3>Buy Jiim</h3>
+    <input type="number" id="buyAmount" placeholder="Amount to buy (JIIM)">
+    <input type="text" id="buyPrice" placeholder="Price (in SOL)">
+    <button class="btn" onclick="placeOrder('buy')">Place Buy Order</button>
+  </div>
+
+  <div class="card">
+    <h3>📄 Open Orders</h3>
+    <ul id="ordersList"></ul>
+  </div>
+
+  <script>
+    let walletAddress = "";
+    let orders = [];
+
+    async function connectWallet() {
+      if (window.solana && window.solana.isPhantom) {
+        try {
+          const response = await window.solana.connect();
+          walletAddress = response.publicKey.toString();
+          document.getElementById("walletAddress").textContent = walletAddress;
+          // Here you would fetch the real Jiim token balance from the blockchain
+          document.getElementById("balance").textContent = "1000";
+        } catch (err) {
+          alert("Connection failed: " + err.message);
+        }
+      } else {
+        alert("Please install Phantom Wallet extension.");
+      }
+    }
+
+    function placeOrder(type) {
+      const amount = type === "sell" ? document.getElementById("sellAmount").value : document.getElementById("buyAmount").value;
+      const price = type === "sell" ? document.getElementById("sellPrice").value : document.getElementById("buyPrice").value;
+
+      if (!walletAddress) {
+        alert("Connect your wallet first.");
+        return;
+      }
+
+      if (!amount || !price) {
+        alert("Please fill all fields.");
+        return;
+      }
+
+      const order = {
+        type,
+        amount,
+        price,
+        user: walletAddress.slice(0, 6) + "...",
+      };
+      orders.push(order);
+      renderOrders();
+    }
+
+    function renderOrders() {
+      const list = document.getElementById("ordersList");
+      list.innerHTML = "";
+      orders.forEach((o, i) => {
+        const li = document.createElement("li");
+        li.textContent = `${o.type.toUpperCase()} ${o.amount} JIIM @ ${o.price} SOL by ${o.user}`;
+        list.appendChild(li);
+      });
+    }
+  </script>
+</body>
+</html>
